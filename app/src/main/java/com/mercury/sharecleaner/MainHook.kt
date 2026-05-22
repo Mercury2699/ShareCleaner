@@ -103,12 +103,41 @@ class MainHook : IXposedHookLoadPackage {
     // ========== URL Cleaning Engine ==========
 
     private fun cleanUrl(url: String): String {
-        val uri = try { Uri.parse(url) } catch (_: Exception) { return url }
-        val host = uri.host?.lowercase() ?: return url
-        val rule = RULES.find { r -> r.matches(host) } ?: return url
+        // Step 1: Resolve short URLs via redirect
+        val resolved = if (isShortUrl(url)) resolveRedirect(url) else url
+
+        // Step 2: Apply parameter rules
+        val uri = try { Uri.parse(resolved) } catch (_: Exception) { return resolved }
+        val host = uri.host?.lowercase() ?: return resolved
+        val rule = RULES.find { r -> r.matches(host) } ?: return resolved
         return when (rule.mode) {
             Mode.BLACKLIST -> removeParams(uri, rule.params)
             Mode.WHITELIST -> keepOnlyParams(uri, rule.params)
+        }
+    }
+
+    private fun isShortUrl(url: String): Boolean {
+        val host = try { Uri.parse(url).host?.lowercase() } catch (_: Exception) { null } ?: return false
+        return host in SHORT_DOMAINS
+    }
+
+    private fun resolveRedirect(url: String): String {
+        return try {
+            val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+            conn.instanceFollowRedirects = false
+            conn.connectTimeout = 3000
+            conn.readTimeout = 3000
+            conn.requestMethod = "HEAD"
+            conn.connect()
+            val location = conn.getHeaderField("Location")
+            conn.disconnect()
+            if (location != null && location.startsWith("http")) {
+                XposedBridge.log("[$TAG] Redirect: $url → $location")
+                location
+            } else url
+        } catch (e: Exception) {
+            XposedBridge.log("[$TAG] Redirect failed for $url: ${e.message}")
+            url
         }
     }
 
@@ -150,6 +179,18 @@ class MainHook : IXposedHookLoadPackage {
 
     companion object {
         private const val TAG = "ShareCleaner"
+
+        private val SHORT_DOMAINS = setOf(
+            "b23.tv",           // Bilibili
+            "xhslink.com",     // 小红书
+            "v.douyin.com",    // 抖音
+            "m.tb.cn",         // 淘宝
+            "u.jd.com",        // 京东
+            "p.pinduoduo.com", // 拼多多
+            "t.cn",            // 微博
+            "url.cn",          // 腾讯
+            "dwz.cn",          // 百度
+        )
 
         private val RULES = listOf(
             Rule("xiaohongshu.com", Mode.BLACKLIST, setOf(
