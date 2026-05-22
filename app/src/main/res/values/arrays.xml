@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="xposed_scope">
+        <!-- 社交/内容 -->
+        <item>com.xingin.xhs</item>           <!-- 小红书 -->
+        <item>com.ss.android.ugc.aweme</item>  <!-- 抖音 -->
+        <item>tv.danmaku.bili</item>           <!-- 哔哩哔哩 -->
+        <item>com.sina.weibo</item>            <!-- 微博 -->
+        <item>com.zhihu.android</item>         <!-- 知乎 -->
+        <item>com.douban.frodo</item>          <!-- 豆瓣 -->
+        <!-- 电商 -->
+        <item>com.taobao.taobao</item>         <!-- 淘宝 -->
+        <item>com.tmall.wireless</item>        <!-- 天猫 -->
+        <item>com.jingdong.app.mall</item>     <!-- 京东 -->
+        <item>com.xunmeng.pinduoduo</item>     <!-- 拼多多 -->
+        <!-- 音视频 -->
+        <item>com.netease.cloudmusic</item>    <!-- 网易云音乐 -->
+        <item>com.tencent.qqmusic</item>       <!-- QQ音乐 -->
+        <item>com.ss.android.article.news</item> <!-- 今日头条 -->
+    </string-array>
+</resources>
